@@ -1,23 +1,9 @@
 package gcewing.sg.features.pdd.client.gui;
 
-import static gcewing.sg.tileentity.SGBaseTE.sendErrorMsg;
-import static org.lwjgl.opengl.GL11.GL_LINEAR;
-import static org.lwjgl.opengl.GL11.GL_QUADS;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
-import static org.lwjgl.opengl.GL11.glBegin;
-import static org.lwjgl.opengl.GL11.glColor3f;
-import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glTexCoord2d;
-import static org.lwjgl.opengl.GL11.glTexParameteri;
-import static org.lwjgl.opengl.GL11.glVertex3d;
-
 import com.google.common.eventbus.Subscribe;
 import gcewing.sg.SGCraft;
 import gcewing.sg.features.pdd.AddressData;
 import gcewing.sg.features.pdd.network.PddNetworkHandler;
-import gcewing.sg.tileentity.DHDTE;
 import gcewing.sg.tileentity.SGBaseTE;
 import gcewing.sg.tileentity.data.GateAccessData;
 import gcewing.sg.util.GateUtil;
@@ -50,6 +36,9 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import java.util.List;
+
+import static gcewing.sg.tileentity.SGBaseTE.sendErrorMsg;
+import static org.lwjgl.opengl.GL11.*;
 
 public class PddScreen extends BasicScreen {
     private int lastUpdate = 0;
@@ -268,12 +257,20 @@ public class PddScreen extends BasicScreen {
     }
 
     private void refresh() { // Method is checked every frame.
+        if (localGate == null) { // This is used when PDD is opened but not near a gate.
+            this.buttonDial.setVisible(false);
+            this.gateStatusLabel.setVisible(false);
+            this.localGateAddressLabel.setVisible(false);
+            this.userFeedbackLabel.setVisible(false);
+        }
+
         if (localGate != null) {
             if (localGate.isMerged) {
                 this.localGateAddressLabel.setText(SGAddressing.formatAddress(localGate.homeAddress, "-", "-"));
             } else {
                 this.localGateAddressLabel.setText(TextFormatting.WHITE + I18n.format("sgcraft.gui.pdd.label.noLocalStargateFound"));
             }
+
             if (localGate != null) {
 
                 if ((this.dialling || this.last || localGate.state == SGState.SyncAwait || localGate.state == SGState.Transient)) {
@@ -391,28 +388,30 @@ public class PddScreen extends BasicScreen {
     }
 
     private void dial() {
-        timer = System.currentTimeMillis();
-        if (this.addressList.getSize() > 0 && this.addressList.getSelectedItem() != null && !this.addressList.getSelectedItem().getAddress().isEmpty()) {
-            if (this.addressList.getSelectedItem().getAddress().equalsIgnoreCase(this.localGateAddressLabel.getText())) {
-                // Don't dial, user lacks common sense.
-                return;
-            }
-        }
-        if (this.addressList.getSize() > 0 && this.addressList.getSelectedItem() != null && !this.addressList.getSelectedItem().getAddress().isEmpty()) {
-            this.resetGui(); //Reset before starting to account for half dialed sequences
-            this.lastUpdate = 0;
-            if (localGate.chevronsLockOnDial) {
-                if (!isAdmin) {
-                    dialSelectedAddressLockEachChevronIndividually(); // Progressive Dial Sequence
-                } else {
-                    // Todo: the below is a very stupid way to implement this...
-                    dialSelectedAddress(); // Immediate dial address and lock all chevrons at one
-                    // Note: this happens because gate.Connect() checks for "chevronsLockOnDial", if true, then immediately lock dialed address.
+        if (localGate != null) { // This will be null in the event user is editing the PDD while not standing near a stargate.
+            timer = System.currentTimeMillis();
+            if (this.addressList.getSize() > 0 && this.addressList.getSelectedItem() != null && !this.addressList.getSelectedItem().getAddress().isEmpty()) {
+                if (this.addressList.getSelectedItem().getAddress().equalsIgnoreCase(this.localGateAddressLabel.getText())) {
+                    // Don't dial, user lacks common sense.
+                    return;
                 }
-            } else {
-                dialSelectedAddress(); // Immediate Dial but display ring rotation.
-                // This does NOT lock all chevrons at once because the TE value "chevronsLockOnDial" is false; and gate.Connect() knows.
-                this.close();
+            }
+            if (this.addressList.getSize() > 0 && this.addressList.getSelectedItem() != null && !this.addressList.getSelectedItem().getAddress().isEmpty()) {
+                this.resetGui(); //Reset before starting to account for half dialed sequences
+                this.lastUpdate = 0;
+                if (localGate.chevronsLockOnDial) {
+                    if (!isAdmin) {
+                        dialSelectedAddressLockEachChevronIndividually(); // Progressive Dial Sequence
+                    } else {
+                        // Todo: the below is a very stupid way to implement this...
+                        dialSelectedAddress(); // Immediate dial address and lock all chevrons at one
+                        // Note: this happens because gate.Connect() checks for "chevronsLockOnDial", if true, then immediately lock dialed address.
+                    }
+                } else {
+                    dialSelectedAddress(); // Immediate Dial but display ring rotation.
+                    // This does NOT lock all chevrons at once because the TE value "chevronsLockOnDial" is false; and gate.Connect() knows.
+                    this.close();
+                }
             }
         }
     }

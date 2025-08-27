@@ -5,7 +5,6 @@ import gcewing.sg.SGCraft;
 import gcewing.sg.features.pdd.AddressData;
 import gcewing.sg.features.pdd.client.gui.PddEntryScreen;
 import gcewing.sg.features.pdd.client.gui.PddScreen;
-import gcewing.sg.generator.GeneratorAddressRegistry;
 import gcewing.sg.network.SGChannel;
 import gcewing.sg.tileentity.SGBaseTE;
 import gcewing.sg.util.SGAddressing;
@@ -15,8 +14,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
-
-import java.util.Random;
 
 public class PddNetworkHandler extends SGChannel {
 
@@ -31,6 +28,27 @@ public class PddNetworkHandler extends SGChannel {
         ChannelOutput data = pddChannel.openPlayer(player,"AddPddEntry");
         data.writeUTF(address);
         data.writeInt(nextIndex);
+        data.close();
+    }
+
+    @ClientMessageHandler("EditPddEntry")
+    public void handlePddEditAddressRequest(EntityPlayer player, ChannelInput data) {
+        String address = data.readUTF();
+        String name = data.readUTF();
+        int currentIndex = data.readInt();
+        int uuid = data.readInt();
+        boolean autoClose = data.readBoolean();
+        address = SGAddressing.formatAddress(address, "-", "-");
+        new PddEntryScreen(null, player, name, address, currentIndex, uuid, false, autoClose,false, 2).display();
+    }
+
+    public static void editPddEntryFromServer(EntityPlayer player, String address, String name, int currentIndex, int uuid, boolean autoClose) {
+        ChannelOutput data = pddChannel.openPlayer(player,"EditPddEntry");
+        data.writeUTF(address);
+        data.writeUTF(name);
+        data.writeInt(currentIndex);
+        data.writeInt(uuid);
+        data.writeBoolean(autoClose);
         data.close();
     }
 

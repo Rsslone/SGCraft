@@ -1,7 +1,5 @@
 package gcewing.sg.features.pdd.client.gui;
 
-import static gcewing.sg.tileentity.SGBaseTE.sendErrorMsg;
-
 import gcewing.sg.features.pdd.network.PddNetworkHandler;
 import net.malisis.core.client.gui.Anchor;
 import net.malisis.core.client.gui.BasicScreen;
@@ -19,7 +17,7 @@ import net.minecraft.util.text.TextFormatting;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
-import java.io.IOException;
+import static gcewing.sg.tileentity.SGBaseTE.sendErrorMsg;
 
 public class PddEntryScreen extends BasicScreen {
     private int lastUpdate = 0;

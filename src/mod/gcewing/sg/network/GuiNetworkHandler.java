@@ -1,10 +1,8 @@
 package gcewing.sg.network;
 
-import static gcewing.sg.tileentity.SGBaseTE.sendErrorMsg;
-
+import gcewing.sg.BaseBlockUtils;
 import gcewing.sg.BaseDataChannel;
 import gcewing.sg.SGCraft;
-import gcewing.sg.features.configurator.client.gui.ConfiguratorScreen;
 import gcewing.sg.features.gdo.client.gui.GdoScreen;
 import gcewing.sg.features.pdd.client.gui.PddScreen;
 import gcewing.sg.tileentity.SGBaseTE;
@@ -13,7 +11,8 @@ import gcewing.sg.util.SGState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
+
+import static gcewing.sg.tileentity.SGBaseTE.sendErrorMsg;
 
 public class GuiNetworkHandler extends SGChannel {
 
@@ -66,7 +65,13 @@ public class GuiNetworkHandler extends SGChannel {
 
     public static void openGuiAtClient(SGBaseTE te, EntityPlayer player, int guiType, boolean isAdmin, boolean canEditLocal, boolean canEditRemote) {
         ChannelOutput data = guiChannel.openPlayer(player,"OpenGUI");
-        writeCoords(data, te);
+        if (te != null) {
+            writeCoords(data, te);
+            // Original Code
+        } else {
+            BaseBlockUtils.writeBlockPos(data, player.getPosition());
+            // fill in coordinate so it doesn't thrown an NPE.
+        }
         data.writeInt(guiType);
         data.writeBoolean(isAdmin);
         data.writeBoolean(canEditLocal);
