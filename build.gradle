@@ -43,8 +43,7 @@ repositories {
         name = 'sponge'
         url = 'https://repo.spongepowered.org/maven'
     }
-    maven { url = "http://cc.crzd.me/maven/" }
-    maven { url = "https://archiva-repository.apache.org/archiva/repository/snapshots" }
+    maven { url = "https://mvnrepository.com/artifact/commons-io/commons-io/2.7/" }
     maven {
         name = 'CoFH Maven'
         url = 'http://maven.covers1624.net'
