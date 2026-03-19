@@ -166,3 +166,6 @@ sgcraft.gui.gdo.label.remoteGateControl=Remote Gate Control
 sgcraft.gui.zpmConsole.label.availablePower=Available Power
 
 item.sgcraft:pegasus_upgrade.name=Pegasus Type Upgrade Crystal
+
+item.sgcraft:mystery_page.name=Mystery Page
+item.sgcraft:address_page.name=Stargate Address Page

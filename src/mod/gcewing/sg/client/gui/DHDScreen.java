@@ -177,12 +177,30 @@ public class DHDScreen extends SGScreen {
             case Keyboard.KEY_NUMPADENTER:
                 dial();
                 break;
+            case Keyboard.KEY_V:
+                if (isCtrlKeyDown()) {
+                    pasteAndDial();
+                }
+                break;
             default:
                 String C = String.valueOf(c).toUpperCase();
                 if (SGAddressing.isValidSymbolChar(C))
                     chevron(C.charAt(0));
                 break;
         }
+    }
+
+    private void pasteAndDial() {
+        SGBaseTE te = getStargateTE();
+        if (te == null || !stargateIsIdle()) return;
+        String raw = SGAddressing.normalizeAddress(getClipboardString());
+        try {
+            SGAddressing.validateAddress(raw);
+        } catch (SGAddressing.AddressingError e) {
+            return;
+        }
+        if (raw.length() > this.addressLength) return;
+        sendConnectOrDisconnect(te, raw);
     }
     
     private void dial() {

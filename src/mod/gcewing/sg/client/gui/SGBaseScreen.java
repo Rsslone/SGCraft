@@ -10,6 +10,7 @@ import gcewing.sg.util.SGAddressing;
 import gcewing.sg.container.SGBaseContainer;
 import gcewing.sg.tileentity.SGBaseTE;
 import gcewing.sg.SGCraft;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.*;
 import net.minecraft.util.math.*;
 import net.minecraft.world.*;
@@ -58,6 +59,14 @@ public class SGBaseScreen extends SGScreen {
     @Override
     public boolean doesGuiPauseGame() {
         return false;
+    }
+
+    @Override
+    public void onGuiClosed() {
+        if (this.addressValid && SGCraft.saveAddressToClipboard) {
+            Minecraft.getMinecraft().ingameGUI.setOverlayMessage("Code copied to your clipboard.", false);
+        }
+        super.onGuiClosed();
     }
 
     @Override
