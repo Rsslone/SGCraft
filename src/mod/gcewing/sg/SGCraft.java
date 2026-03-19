@@ -112,7 +112,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 
 @Mod(modid = Info.modID, name = Info.modName, version = Info.versionNumber,
-    acceptableRemoteVersions = Info.versionBounds, dependencies = "after:opencomputers;after:ic2;after:computercraft;after:malisiscore")
+    acceptableRemoteVersions = Info.versionBounds, dependencies = "after:opencomputers;after:ic2;after:computercraft")
 
 public class SGCraft extends BaseMod<SGCraftClient> {
 
@@ -325,27 +325,25 @@ public class SGCraft extends BaseMod<SGCraftClient> {
 
         pegasus_upgrade = addItem(new SGPegasusUpgradeItem(), "pegasus_upgrade");
 
-        if (isModLoaded("malisiscore")) {
-            new GuiNetworkHandler(Info.modID+"-GUI");
+        new GuiNetworkHandler(Info.modID+"-GUI");
 
-            gdo = addItem(new GdoItem(), "gdo");
-            new GdoNetworkHandler(Info.modID+"-gdo");
+        gdo = addItem(new GdoItem(), "gdo");
+        new GdoNetworkHandler(Info.modID+"-gdo");
 
-            pdd = addItem(new PddItem(), "pdd");
-            new PddNetworkHandler(Info.modID+"-pdd");
+        pdd = addItem(new PddItem(), "pdd");
+        new PddNetworkHandler(Info.modID+"-pdd");
 
-            // PDD default address loader
-            final ConfigurationNode rootNode;
-            try {
-                rootNode = AddressNameRegistry.createRootNode(Paths.get(".", "config", "SGCraft", "pdd.yml"));
-                AddressNameRegistry.populateNames(rootNode);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            configurator = addItem(new ConfiguratorItem(), "configurator");
-            new ConfiguratorNetworkHandler(Info.modID+"-configurator");
+        // PDD default address loader
+        final ConfigurationNode pddRootNode;
+        try {
+            pddRootNode = AddressNameRegistry.createRootNode(Paths.get(".", "config", "SGCraft", "pdd.yml"));
+            AddressNameRegistry.populateNames(pddRootNode);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
+        configurator = addItem(new ConfiguratorItem(), "configurator");
+        new ConfiguratorNetworkHandler(Info.modID+"-configurator");
 
         // Structure Generated Address Registry
         final ConfigurationNode rootNode;
@@ -471,13 +469,11 @@ public class SGCraft extends BaseMod<SGCraftClient> {
             }
         }
 
-        if (isModLoaded("malisiscore")) {
-            if (config.getBoolean("recipes", "pdd", true)) {
-                newRecipe("pdd", pdd, 1, "rcr", "nCn", "xbz", 'n', naquadah, 'z', sgCoreCrystal, 'x', sgControllerCrystal, 'r', Items.REDSTONE, 'b', Items.WRITABLE_BOOK, 'C', Items.CLOCK, 'c', Items.COMPASS);
-            }
-            if (config.getBoolean("recipes", "gdo", true)) {
-                newRecipe("gdo", gdo, 1, "rCr", "xLz", "nbn", 'n', naquadah, 'z', sgCoreCrystal, 'x', sgControllerCrystal, 'r', Items.REDSTONE, 'b', Items.WRITABLE_BOOK, 'C', Items.CLOCK, 'L', Blocks.LEVER);
-            }
+        if (config.getBoolean("recipes", "pdd", true)) {
+            newRecipe("pdd", pdd, 1, "rcr", "nCn", "xbz", 'n', naquadah, 'z', sgCoreCrystal, 'x', sgControllerCrystal, 'r', Items.REDSTONE, 'b', Items.WRITABLE_BOOK, 'C', Items.CLOCK, 'c', Items.COMPASS);
+        }
+        if (config.getBoolean("recipes", "gdo", true)) {
+            newRecipe("gdo", gdo, 1, "rCr", "xLz", "nbn", 'n', naquadah, 'z', sgCoreCrystal, 'x', sgControllerCrystal, 'r', Items.REDSTONE, 'b', Items.WRITABLE_BOOK, 'C', Items.CLOCK, 'L', Blocks.LEVER);
         }
 
         if (config.getBoolean("recipes", "zpmConsole", true)) {
