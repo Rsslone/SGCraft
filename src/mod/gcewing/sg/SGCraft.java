@@ -480,15 +480,6 @@ public class SGCraft extends BaseMod<SGCraftClient> {
             newRecipe("zpmConsole", zpm_console, 1, "rgr", "xIz", "InI", 'n', Blocks.GOLD_BLOCK, 'z', sgCoreCrystal, 'x', sgControllerCrystal, 'r', Items.EMERALD, 'g', Blocks.GLASS_PANE, 'I', Blocks.IRON_BLOCK);
         }
 
-        if (!isModLoaded("ic2")) {
-            addGenericCapacitorRecipe();
-        }
-    }
-
-    protected void addGenericCapacitorRecipe() {
-        if (config.getBoolean("recipes", "genericCapacitorItem", true)) {
-            newRecipe("ic2capacitor", ic2Capacitor, 1, "iii", "ppp", "iii", 'i', "ingotIron", 'p', "paper");
-        }
     }
 
     @Override
