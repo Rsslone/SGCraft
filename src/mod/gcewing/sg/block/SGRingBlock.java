@@ -144,7 +144,7 @@ public class SGRingBlock extends SGBlock<SGRingTE> {
         te.isMerged = true;
         te.basePos = basePos;
         //te.onInventoryChanged();
-        BaseBlockUtils.markBlockForUpdate(world, pos);
+        te.markBlockChanged();
     }
     
     public void unmergeFrom(World world, BlockPos pos, BlockPos basePos) {
