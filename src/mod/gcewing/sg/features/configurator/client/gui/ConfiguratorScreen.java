@@ -113,7 +113,7 @@ public class ConfiguratorScreen extends BasicScreen {
         SGBaseTE localGate = (SGBaseTE) localGateTE;
 
         // Master Panel
-        this.form = new BasicForm(this, 500, 350, "");
+        this.form = new BasicForm(this, 500, 300, "");
         this.form.setAnchor(Anchor.CENTER | Anchor.MIDDLE);
         this.form.setMovable(true);
         this.form.setClosable(true);
@@ -130,7 +130,7 @@ public class ConfiguratorScreen extends BasicScreen {
 
         // ****************************************************************************************************************************
 
-        this.numericOptionsArea = new BasicForm(this, 245, 310, "");
+        this.numericOptionsArea = new BasicForm(this, 245, 260, "");
         this.numericOptionsArea.setPosition(0, 0, Anchor.LEFT | Anchor.MIDDLE);
         this.numericOptionsArea.setMovable(false);
         this.numericOptionsArea.setClosable(false);
@@ -319,7 +319,7 @@ public class ConfiguratorScreen extends BasicScreen {
 
         // ****************************************************************************************************************************
 
-        this.checkboxOptionsArea = new BasicForm(this, 245, 310, "");
+        this.checkboxOptionsArea = new BasicForm(this, 245, 260, "");
         this.checkboxOptionsArea.setPosition(0, 0, Anchor.RIGHT | Anchor.MIDDLE);
         this.checkboxOptionsArea.setMovable(false);
         this.checkboxOptionsArea.setClosable(false);
