@@ -75,7 +75,12 @@ public class SGRingBlock extends SGBlock<SGRingTE> {
     
     @Override
     public boolean canRenderInLayer(IBlockState state, BlockRenderLayer layer) {
-        return true; // So that translucent camouflage blocks render correctly
+        // Merged ring blocks are rendered entirely by the TESR; unmerged blocks are solid.
+        // Returning true for all layers caused merged blocks with no camouflage to participate
+        // in the TRANSLUCENT sort pass with no geometry, confusing translucency-sorting
+        // renderers such as Nothirium and producing depth-sorting artefacts against nearby
+        // translucent TEs (e.g. MFFS force fields).
+        return layer == BlockRenderLayer.SOLID || layer == BlockRenderLayer.CUTOUT_MIPPED;
     }
     
     @Override

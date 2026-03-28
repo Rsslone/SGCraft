@@ -83,12 +83,10 @@ public class SGBaseTERenderer extends BaseTileEntityRenderer {
         SGBaseTE gate = (SGBaseTE)te;
         if (gate.isMerged) {
             glPushMatrix();
-            if (gate.transparency) {
-                glEnable(GL_BLEND);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            } else {
-                glDisable(GL_BLEND);
-            }
+            // Fix 3: ensure depth writes are on before opaque ring geometry;
+            // Fix 1: ring/chevrons are fully opaque — blend is scoped to EH and iris only.
+            glDepthMask(true);
+            glDisable(GL_BLEND);
 
             glEnable(GL_RESCALE_NORMAL);
             glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -390,6 +388,9 @@ public class SGBaseTERenderer extends BaseTileEntityRenderer {
         }
         GL11.glDisable(GL_LIGHTING);
         setLightingDisabled(true);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDepthMask(false);
         glDisable(GL_CULL_FACE);
         glNormal3d(0, 0, 1);
         double grid[][] = te.getEventHorizonGrid()[0];
@@ -409,6 +410,7 @@ public class SGBaseTERenderer extends BaseTileEntityRenderer {
             ehVertex(grid, 1, j, rclip);
         glEnd();
         glDepthMask(true);
+        glDisable(GL_BLEND);
         glEnable(GL_CULL_FACE);
         GL11.glEnable(GL_LIGHTING);
         setLightingDisabled(false);
@@ -435,6 +437,8 @@ public class SGBaseTERenderer extends BaseTileEntityRenderer {
         } else {
             bindTexture(SGCraft.mod.resourceLocation("textures/tileentity/pegasus/iris.png"));
         }
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         double a = 0.8 * te.getIrisAperture(t);
         for (int i = 0; i < numIrisBlades; i++) {
             glPushMatrix();
@@ -442,6 +446,7 @@ public class SGBaseTERenderer extends BaseTileEntityRenderer {
             renderIrisBlade(te, a, t);
             glPopMatrix();
         }
+        glDisable(GL_BLEND);
     }
     
     void renderIrisBlade(SGBaseTE te, double a, double t) {
