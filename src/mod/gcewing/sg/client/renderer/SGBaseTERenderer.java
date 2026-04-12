@@ -23,11 +23,26 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import org.lwjgl.opengl.GL11;
 
+import net.minecraft.util.ResourceLocation;
+
 import static java.lang.Math.min;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_RESCALE_NORMAL;
 
 public class SGBaseTERenderer extends BaseTileEntityRenderer {
+
+    private static final ResourceLocation TEX_MILKYWAY_STARGATE =
+        new ResourceLocation("sgcraft", "textures/tileentity/milkyway/stargate.png");
+    private static final ResourceLocation TEX_PEGASUS_STARGATE =
+        new ResourceLocation("sgcraft", "textures/tileentity/pegasus/stargate.png");
+    private static final ResourceLocation TEX_EVENT_HORIZON_HD =
+        new ResourceLocation("sgcraft", "textures/tileentity/eventhorizonhd.png");
+    private static final ResourceLocation TEX_EVENT_HORIZON =
+        new ResourceLocation("sgcraft", "textures/tileentity/eventhorizon.png");
+    private static final ResourceLocation TEX_MILKYWAY_IRIS =
+        new ResourceLocation("sgcraft", "textures/tileentity/milkyway/iris.png");
+    private static final ResourceLocation TEX_PEGASUS_IRIS =
+        new ResourceLocation("sgcraft", "textures/tileentity/pegasus/iris.png");
 
     final static int numRingSegments = 32;
     final static double ringInnerRadius = 2.0;
@@ -143,9 +158,9 @@ public class SGBaseTERenderer extends BaseTileEntityRenderer {
     void renderStargate(SGBaseTE gate, float partialTicks) {
         BaseGLUtils.glMultMatrix(gate.localToGlobalTransformation(Vector3.zero));
         if (gate.gateType <= 1) {
-            bindTexture(SGCraft.mod.resourceLocation("textures/tileentity/milkyway/stargate.png"));
+            bindTexture(TEX_MILKYWAY_STARGATE);
         } else {
-            bindTexture(SGCraft.mod.resourceLocation("textures/tileentity/pegasus/stargate.png"));
+            bindTexture(TEX_PEGASUS_STARGATE);
         }
 
         glNormal3f(0, 1, 0);
@@ -175,14 +190,14 @@ public class SGBaseTERenderer extends BaseTileEntityRenderer {
             selectTile(TextureIndex.RING);
             switch (type) {
                 case Outer:
-                    glNormal3d(c[i], s[i], 0);
+                    glNormal3f((float)c[i], (float)s[i], 0);
                     vertex(r2 * c[i], r2 * s[i], z, 0, 0);
                     vertex(r2 * c[i], r2 * s[i], -z, 0, 16);
                     vertex(r2 * c[i + 1], r2 * s[i + 1], -z, 16, 16);
                     vertex(r2 * c[i + 1], r2 * s[i + 1], z, 16, 0);
                     break;
                 case Inner:
-                    glNormal3d(-c[i], -s[i], 0);
+                    glNormal3f((float)-c[i], (float)-s[i], 0);
                     vertex(r1 * c[i], r1 * s[i], -z, 0, 0);
                     vertex(r1 * c[i], r1 * s[i], z, 0, 16);
                     vertex(r1 * c[i + 1], r1 * s[i + 1], z, 16, 16);
@@ -382,9 +397,9 @@ public class SGBaseTERenderer extends BaseTileEntityRenderer {
 
     void renderEventHorizon(SGBaseTE te, float partialTicks) {
         if (SGCraft.useHDEventHorizionTexture) {
-            bindTexture(SGCraft.mod.resourceLocation("textures/tileentity/eventhorizonhd.png"));
+            bindTexture(TEX_EVENT_HORIZON_HD);
         } else {
-            bindTexture(SGCraft.mod.resourceLocation("textures/tileentity/eventhorizon.png"));
+            bindTexture(TEX_EVENT_HORIZON);
         }
         GL11.glDisable(GL_LIGHTING);
         setLightingDisabled(true);
@@ -392,7 +407,7 @@ public class SGBaseTERenderer extends BaseTileEntityRenderer {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDepthMask(false);
         glDisable(GL_CULL_FACE);
-        glNormal3d(0, 0, 1);
+        glNormal3f(0, 0, 1);
         double grid[][] = te.getEventHorizonGrid()[0];
         double rclip = 2.5 * (te.irisIsClosed() ?  te.getIrisAperture(partialTicks) : 1.0);
         for (int i = 1; i < ehGridRadialSize; i++) {
@@ -404,8 +419,8 @@ public class SGBaseTERenderer extends BaseTileEntityRenderer {
             glEnd();
         }
         glBegin(GL_TRIANGLE_FAN);
-        glTexCoord2d(0, 0);
-        glVertex3d(0, 0, ehClip(grid[1][0], 0, rclip));
+        glTexCoord2f(0, 0);
+        glVertex3f(0, 0, (float)ehClip(grid[1][0], 0, rclip));
         for (int j = 0; j <= ehGridPolarSize; j++)
             ehVertex(grid, 1, j, rclip);
         glEnd();
@@ -421,8 +436,8 @@ public class SGBaseTERenderer extends BaseTileEntityRenderer {
         double x = r * c[j];
         double y = r * s[j];
         double z = ehClip(grid[j+1][i], r, rclip);
-        glTexCoord2d(x, y);
-        glVertex3d(x, y, z);
+        glTexCoord2f((float)x, (float)y);
+        glVertex3f((float)x, (float)y, (float)z);
     }
     
     double ehClip(double z, double r, double rclip) {
@@ -433,9 +448,9 @@ public class SGBaseTERenderer extends BaseTileEntityRenderer {
     
     void renderIris(SGBaseTE te, double t) {
         if (te.gateType <= 1) {
-            bindTexture(SGCraft.mod.resourceLocation("textures/tileentity/milkyway/iris.png"));
+            bindTexture(TEX_MILKYWAY_IRIS);
         } else {
-            bindTexture(SGCraft.mod.resourceLocation("textures/tileentity/pegasus/iris.png"));
+            bindTexture(TEX_PEGASUS_IRIS);
         }
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -466,18 +481,18 @@ public class SGBaseTERenderer extends BaseTileEntityRenderer {
         glTranslated(r, 0, 0);
         glRotated(-aa, 0, 0, 1);
         glBegin(GL_TRIANGLE_FAN);
-        glTexCoord2d(0, 0); glVertex3d(-w1, 0, z0);
-        glTexCoord2d(1, 0); glVertex3d(0, 0, z0 + z1);
-        glTexCoord2d(1, v0); glVertex3d(0, h0, z0 + z1);
-        glTexCoord2d(u, v); glVertex3d(-w1 + w2, h, z0);
-        glTexCoord2d(0, v); glVertex3d(-w1, h, z0);
+        glTexCoord2f(0, 0); glVertex3f((float)-w1, 0, (float)z0);
+        glTexCoord2f(1, 0); glVertex3f(0, 0, (float)(z0 + z1));
+        glTexCoord2f(1, (float)v0); glVertex3f(0, (float)h0, (float)(z0 + z1));
+        glTexCoord2f((float)u, (float)v); glVertex3f((float)(-w1 + w2), (float)h, (float)z0);
+        glTexCoord2f(0, (float)v); glVertex3f((float)-w1, (float)h, (float)z0);
         glEnd();
         glBegin(GL_TRIANGLE_FAN);
-        glTexCoord2d(0, 0); glVertex3d(-w1, 0, z0);
-        glTexCoord2d(0, v); glVertex3d(-w1, h, z0);
-        glTexCoord2d(u, v); glVertex3d(-w1 + w2, h, z0);
-        glTexCoord2d(1, v0); glVertex3d(0, h0, z0 - z1);
-        glTexCoord2d(1, 0); glVertex3d(0, 0, z0 - z1);
+        glTexCoord2f(0, 0); glVertex3f((float)-w1, 0, (float)z0);
+        glTexCoord2f(0, (float)v); glVertex3f((float)-w1, (float)h, (float)z0);
+        glTexCoord2f((float)u, (float)v); glVertex3f((float)(-w1 + w2), (float)h, (float)z0);
+        glTexCoord2f(1, (float)v0); glVertex3f(0, (float)h0, (float)(z0 - z1));
+        glTexCoord2f(1, 0); glVertex3f(0, 0, (float)(z0 - z1));
         glEnd();
         glPopMatrix();
     }
@@ -488,8 +503,8 @@ public class SGBaseTERenderer extends BaseTileEntityRenderer {
     }
     
     void vertex(double x, double y, double z, double u, double v) {
-        glTexCoord2d(u0 + u * textureScaleU, v0 + v * textureScaleV);
-        glVertex3d(x, y, z);
+        glTexCoord2f((float)(u0 + u * textureScaleU), (float)(v0 + v * textureScaleV));
+        glVertex3f((float)x, (float)y, (float)z);
     }
 
 }

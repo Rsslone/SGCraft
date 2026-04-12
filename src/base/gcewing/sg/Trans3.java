@@ -162,6 +162,28 @@ public class Trans3 {
     public Vector3 v(Vector3 u) {
         return rotation.mul(u.mul(scaling));
     }
+
+    /** In-place transform: write rotated+scaled direction into dest, return dest. Zero alloc. */
+    public Vector3 v(double x, double y, double z, Vector3 dest) {
+        double s = scaling;
+        double[][] m = rotation.m;
+        double sx = x * s, sy = y * s, sz = z * s;
+        dest.x = sx * m[0][0] + sy * m[0][1] + sz * m[0][2];
+        dest.y = sx * m[1][0] + sy * m[1][1] + sz * m[1][2];
+        dest.z = sx * m[2][0] + sy * m[2][1] + sz * m[2][2];
+        return dest;
+    }
+
+    /** In-place transform: write full point transform into dest, return dest. Zero alloc. */
+    public Vector3 p(double x, double y, double z, Vector3 dest) {
+        double s = scaling;
+        double[][] m = rotation.m;
+        double sx = x * s, sy = y * s, sz = z * s;
+        dest.x = offset.x + sx * m[0][0] + sy * m[0][1] + sz * m[0][2];
+        dest.y = offset.y + sx * m[1][0] + sy * m[1][1] + sz * m[1][2];
+        dest.z = offset.z + sx * m[2][0] + sy * m[2][1] + sz * m[2][2];
+        return dest;
+    }
     
     public Vector3 v(EnumFacing f) {
         return v(getDirectionVec(f));

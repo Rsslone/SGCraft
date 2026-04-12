@@ -21,6 +21,10 @@ public class BaseGLRenderTarget extends BaseRenderTarget {
     protected int glMode;
     protected int emissiveMode;
     protected int texturedMode;
+
+    // Cached GL normal/color — only emit GL call when value changes.
+    protected float lastNx = Float.NaN, lastNy, lastNz;
+    protected float lastR = Float.NaN, lastG, lastB, lastA;
     
     public BaseGLRenderTarget() {
         super(0, 0, 0, null);
@@ -28,13 +32,28 @@ public class BaseGLRenderTarget extends BaseRenderTarget {
     
     public void start(boolean usingLightmap) {
         this.usingLightmap = usingLightmap;
+        // Reset texture ref so setTexture() always calls glBindTexture on first use.
+        // The shared static target carries this field across frames; without a reset,
+        // a same-object texture comparison skips glBindTexture, leaving the wrong
+        // texture bound after glPopAttrib restored the pre-start GL binding.
+        texture = null;
+        // Defensive GL state reset. glPushAttrib below does NOT cover GL_BLEND or
+        // depth-mask; other TESRs or MC's render pipeline may leave them dirty.
+        GlStateManager.disableBlend();
+        GlStateManager.depthMask(true);
         if (debugGL) System.out.printf("BaseGLRenderTarget: glPushAttrib()\n");
-        glPushAttrib(GL_LIGHTING_BIT | GL_TEXTURE_BIT | GL_TRANSFORM_BIT);
+        // GL_TEXTURE_BIT removed: glPopAttrib would silently restore the raw GL texture
+        // binding behind GlStateManager's back, desyncing its cache and causing
+        // subsequent TESRs to skip glBindTexture calls on unchanged-looking textures.
+        glPushAttrib(GL_LIGHTING_BIT | GL_TRANSFORM_BIT);
         if (debugGL) System.out.printf("BaseGLRenderTarget: glEnable(GL_RESCALE_NORMAL)\n");
         glEnable(GL_RESCALE_NORMAL);
         glMode = 0;
         emissiveMode = -1;
         texturedMode = -1;
+        // Invalidate cached GL state so first face always emits normal/color.
+        lastNx = Float.NaN;
+        lastR  = Float.NaN;
     }
     
     @Override
@@ -49,6 +68,8 @@ public class BaseGLRenderTarget extends BaseRenderTarget {
             }
             setTexturedMode(!tex.isSolid());
             setEmissiveMode(tex.isEmissive());
+            // Texture tint affects r/g/b(); invalidate so emitColorIfChanged re-emits.
+            lastR = Float.NaN;
         }
     }   
     
@@ -88,15 +109,30 @@ public class BaseGLRenderTarget extends BaseRenderTarget {
     }
 
     @Override
+    public void setNormal(Vector3 n) {
+        super.setNormal(n);
+        float nx = (float)n.x, ny = (float)n.y, nz = (float)n.z;
+        if (nx != lastNx || ny != lastNy || nz != lastNz) {
+            glNormal3f(nx, ny, nz);
+            lastNx = nx; lastNy = ny; lastNz = nz;
+        }
+    }
+
+    protected void emitColorIfChanged() {
+        float r = r(), g = g(), b = b(), a = a();
+        if (r != lastR || g != lastG || b != lastB || a != lastA) {
+            glColor4f(r, g, b, a);
+            lastR = r; lastG = g; lastB = b; lastA = a;
+        }
+    }
+
+    @Override
     protected void rawAddVertex(Vector3 p, double u, double v) {
         setGLMode(verticesPerFace);
-        //System.out.printf("BaseGLRenderTarget: glColor4f(%.2f, %.2f, %.2f, %.2f)\n",
-        //  r(), g(), b(), a());
-        glColor4f(r(), g(), b(), a());
-        glNormal3d(normal.x, normal.y, normal.z);
-        glTexCoord2d(u, v);
-        if (debugGL) System.out.printf("BaseGLRenderTarget: glVertex3d%s\n", p);
-        glVertex3d(p.x, p.y, p.z);
+        emitColorIfChanged();
+        glTexCoord2f((float)u, (float)v);
+        if (debugGL) System.out.printf("BaseGLRenderTarget: glVertex3f%s\n", p);
+        glVertex3f((float)p.x, (float)p.y, (float)p.z);
     }
     
     protected void setGLMode(int mode) {
