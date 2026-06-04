@@ -72,7 +72,8 @@ public class BaseModel implements IModel {
     }
 
     public void render(Trans3 t, IRenderTarget renderer, ITexture... textures) {
-        Vector3 p = null, n = null;
+        Vector3 p = new Vector3(0, 0, 0);
+        Vector3 n = new Vector3(0, 0, 0);
         for (Face face : faces) {
             ITexture tex = textures[face.texture];
             if (tex != null) {
@@ -82,8 +83,8 @@ public class BaseModel implements IModel {
                     for (int i = 0; i < 3; i++) {
                         int j = tri[i];
                         double[] c = face.vertices[j];
-                        p = t.p(c[0], c[1], c[2]);
-                        n = t.v(c[3], c[4], c[5]);
+                        t.p(c[0], c[1], c[2], p);
+                        t.v(c[3], c[4], c[5], n);
                         renderer.setNormal(n);
                         renderer.addVertex(p, c[6], c[7]);
                     }
