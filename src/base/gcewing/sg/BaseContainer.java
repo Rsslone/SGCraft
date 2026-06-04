@@ -103,8 +103,14 @@ public class BaseContainer extends Container {
                     else
                         slot.onSlotChanged();
                 }
-                else
+                else {
+                    result = stack.copy();
                     player.inventory.addItemStackToInventory(stack);
+                    if (stack.getCount() == 0)
+                        slot.putStack(ItemStack.EMPTY);
+                    else
+                        slot.onSlotChanged();
+                }
             }
         }
         return result;

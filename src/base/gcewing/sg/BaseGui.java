@@ -83,6 +83,7 @@ public class BaseGui {
             if (title != null)
                 drawTitle(title);
             root.draw(this, mouseX - guiLeft, mouseY - guiTop);
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             GL11.glPopMatrix();
         }
         
@@ -142,15 +143,15 @@ public class BaseGui {
         }
         
         public void drawRect(double x, double y, double w, double h) {
-            glDisable(GL_TEXTURE_2D);
-            glColor3d(gstate.red, gstate.green, gstate.blue);
+            GlStateManager.disableTexture2D();
+            GlStateManager.color(gstate.red, gstate.green, gstate.blue, 1.0F);
             glBegin(GL_QUADS);
             glVertex3d(x, y+h, zLevel);
             glVertex3d(x+w, y+h, zLevel);
             glVertex3d(x+w, y, zLevel);
             glVertex3d(x, y, zLevel);
             glEnd();
-            glEnable(GL_TEXTURE_2D);
+            GlStateManager.enableTexture2D();
         }
         
         public void drawBorderedRect(double x, double y, double w, double h,
@@ -216,7 +217,7 @@ public class BaseGui {
             //System.out.printf("BaseGuiContainer.drawTexturedRectUV: (%s, %s, %s, %s) (%s, %s, %s, %s)\n",
             //  x, y, w, h, u, v, us, vs);
             glBegin(GL_QUADS);
-            glColor3f(gstate.red, gstate.green, gstate.blue);
+            GlStateManager.color(gstate.red, gstate.green, gstate.blue, 1.0F);
             glTexCoord2d(u, v+vs);
             glVertex3d(x, y+h, zLevel);
             glTexCoord2d(u+us, v+vs);

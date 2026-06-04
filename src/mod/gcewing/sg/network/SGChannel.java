@@ -8,10 +8,14 @@ package gcewing.sg.network;
 
 import gcewing.sg.BaseBlockUtils;
 import gcewing.sg.BaseDataChannel;
+import gcewing.sg.features.mysterypage.AddressPageItem;
 import gcewing.sg.tileentity.DHDTE;
 import gcewing.sg.tileentity.SGBaseTE;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 
 public class SGChannel extends BaseDataChannel {
@@ -99,5 +103,25 @@ public class SGChannel extends BaseDataChannel {
 
     public BlockPos readCoords(ChannelInput data) {
         return BaseBlockUtils.readBlockPos(data);
+    }
+
+    public static void sendSetAddressPageTitle(EnumHand hand, String title) {
+        ChannelOutput data = channel.openServer("SetAddressPageTitle");
+        data.writeInt(hand == EnumHand.MAIN_HAND ? 0 : 1);
+        data.writeUTF(title);
+        data.close();
+    }
+
+    @ServerMessageHandler("SetAddressPageTitle")
+    public void handleSetAddressPageTitleFromClient(EntityPlayer player, ChannelInput data) {
+        int handId = data.readInt();
+        String title = data.readUTF();
+        EnumHand hand = handId == 0 ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND;
+        ItemStack stack = player.getHeldItem(hand);
+        if (stack.getItem() instanceof AddressPageItem) {
+            NBTTagCompound tag = stack.hasTagCompound() ? stack.getTagCompound() : new NBTTagCompound();
+            tag.setString("title", title.length() > 32 ? title.substring(0, 32) : title);
+            stack.setTagCompound(tag);
+        }
     }
 }

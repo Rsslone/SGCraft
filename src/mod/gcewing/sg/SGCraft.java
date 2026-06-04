@@ -21,6 +21,8 @@ import gcewing.sg.entity.SGEntity;
 import gcewing.sg.features.configurator.ConfiguratorItem;
 import gcewing.sg.features.configurator.network.ConfiguratorNetworkHandler;
 import gcewing.sg.features.gdo.GdoItem;
+import gcewing.sg.features.mysterypage.AddressPageItem;
+import gcewing.sg.features.mysterypage.MysteryPageItem;
 import gcewing.sg.features.gdo.network.GdoNetworkHandler;
 import gcewing.sg.features.ic2.zpm.modulehub.ZpmHub;
 import gcewing.sg.features.ic2.zpm.modulehub.ZpmHubContainer;
@@ -78,6 +80,14 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.storage.loot.LootEntry;
+import net.minecraft.world.storage.loot.LootEntryItem;
+import net.minecraft.world.storage.loot.LootPool;
+import net.minecraft.world.storage.loot.LootTableList;
+import net.minecraft.world.storage.loot.RandomValueRange;
+import net.minecraft.world.storage.loot.conditions.LootCondition;
+import net.minecraft.world.storage.loot.functions.LootFunction;
+import net.minecraftforge.event.LootTableLoadEvent;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.world.chunk.Chunk;
@@ -144,6 +154,9 @@ public class SGCraft extends BaseMod<SGCraftClient> {
 
     public static Block zpm_interface_cart, zpm_console, zpm_hub;
     public static Item zpm, gdo, pdd, configurator;
+    public static Item mysteryPage, addressPage;
+    public static boolean allowGeneratedStargateAddressInLoot = true;
+    public static int mysteryPageLootWeight = 3;
 
     public static CreativeTabs creativeTabs;
 
@@ -345,6 +358,9 @@ public class SGCraft extends BaseMod<SGCraftClient> {
         configurator = addItem(new ConfiguratorItem(), "configurator");
         new ConfiguratorNetworkHandler(Info.modID+"-configurator");
 
+        mysteryPage = addItem(new MysteryPageItem(), "mystery_page");
+        addressPage = addItem(new AddressPageItem(), "address_page");
+
         // Structure Generated Address Registry
         final ConfigurationNode rootNode;
         try {
@@ -531,6 +547,27 @@ public class SGCraft extends BaseMod<SGCraftClient> {
         SGBaseTE.registerSounds(this);
     }
 
+    // Add Mystery Page to Dungeon Loot Tables
+    @SubscribeEvent
+    public void onMysteryPageLootTableLoad(LootTableLoadEvent event) {
+        if (mysteryPageLootWeight <= 0 || mysteryPage == null) return;
+        ResourceLocation name = event.getName();
+        if (name.equals(LootTableList.CHESTS_SIMPLE_DUNGEON) ||
+                name.equals(LootTableList.CHESTS_STRONGHOLD_LIBRARY)) {
+            LootPool pool = new LootPool(
+                    new LootEntry[]{
+                            new LootEntryItem(mysteryPage, mysteryPageLootWeight, 0,
+                                    new LootFunction[0], new LootCondition[0], "mystery_page")
+                    },
+                    new LootCondition[0],
+                    new RandomValueRange(1),
+                    new RandomValueRange(0),
+                    "mystery_page_pool"
+            );
+            event.getTable().addPool(pool);
+        }
+    }
+
     @SubscribeEvent
     public void onChunkLoad(ChunkDataEvent.Load e) {
         Chunk chunk = e.getChunk();
@@ -635,6 +672,11 @@ public class SGCraft extends BaseMod<SGCraftClient> {
 
         // Transient Damage - Unbreakable Blocks
         wormholeCanDestroyUnbreakableBlocks = config.getBoolean("stargate", "wormholeCanDestroyUnbreakableBlocks", wormholeCanDestroyUnbreakableBlocks);
+
+        // Loot
+        allowGeneratedStargateAddressInLoot = config.getBoolean("loot", "allowGeneratedStargateAddressInLoot", allowGeneratedStargateAddressInLoot);
+        mysteryPageLootWeight = config.getInteger("loot", "mysteryPageLootWeight", mysteryPageLootWeight);
+
     }
 
     public static boolean hasPermission(EntityPlayer player, String permission) {
