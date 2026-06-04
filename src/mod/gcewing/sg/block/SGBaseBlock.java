@@ -65,11 +65,6 @@ public class SGBaseBlock extends SGBlock<SGBaseTE> {
     
     @Override
     public boolean canRenderInLayer(IBlockState state, BlockRenderLayer layer) {
-        // Merged base blocks are rendered entirely by the TESR; unmerged blocks are solid.
-        // Returning true for all layers caused merged blocks with no camouflage to participate
-        // in the TRANSLUCENT sort pass with no geometry, confusing translucency-sorting
-        // renderers such as Nothirium and producing depth-sorting artefacts against nearby
-        // translucent TEs (e.g. MFFS force fields).
         return layer == BlockRenderLayer.SOLID || layer == BlockRenderLayer.CUTOUT_MIPPED;
     }
 
@@ -237,7 +232,6 @@ public class SGBaseBlock extends SGBlock<SGBaseTE> {
     }
 
     public void checkForHorizontalMerge(World world, BlockPos pos) {
-        boolean debugThisMerge = true;
         if (!isMerged(world, pos)) {
             Trans3 t = localToGlobalTransformation(world, pos);
             for (int x = -2; x <= 2; x++) {
