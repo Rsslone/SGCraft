@@ -7,7 +7,6 @@ import gcewing.sg.BaseTileInventory;
 import gcewing.sg.SGCraft;
 import gcewing.sg.features.zpm.ZPMItem;
 import gcewing.sg.interfaces.ISGEnergySource;
-import gcewing.sg.tileentity.DHDTE;
 import gcewing.sg.tileentity.SGBaseTE;
 import gcewing.sg.util.GateUtil;
 import net.minecraft.block.state.IBlockState;
@@ -54,6 +53,9 @@ public final class ZpmConsoleTE extends BaseTileInventory implements ISGEnergySo
     public boolean loaded = false;
     private boolean debugOutput = false;
     private int maxExtract = 5000;
+    /** Ticks remaining before the next neighbor scan when all neighbors were full on the last pass. */
+    private int idleTicksRemaining = 0;
+    private static final int IDLE_SCAN_INTERVAL = 8;
 
     public ZpmConsoleTE() {}
 
@@ -340,21 +342,46 @@ public final class ZpmConsoleTE extends BaseTileInventory implements ISGEnergySo
 
     @Override
     public void update() {
-        if(!this.world.isRemote) {
+        if (!this.world.isRemote) {
+            // Backoff: if no transfer happened last scan, wait IDLE_SCAN_INTERVAL ticks.
+            if (idleTicksRemaining > 0) {
+                --idleTicksRemaining;
+                return;
+            }
+
+            // Skip all neighbor scans if we have nothing to give.
+            int available = this.extractEnergy(50000, true);
+            if (available <= 0) {
+                idleTicksRemaining = IDLE_SCAN_INTERVAL;
+                return;
+            }
+
+            boolean transferred = false;
             for (EnumFacing side : EnumFacing.values()) {
                 if (side == EnumFacing.UP)
                     continue;
                 TileEntity tile = this.world.getTileEntity(this.pos.offset(side));
                 // Note: make sure the neighbor isn't also a ZpmConsoleTE otherwise a loopback is created.  This only applies to forge based power with this update method.
-                if (tile != null && (!(tile instanceof ZpmConsoleTE))) {
-                    if (tile.hasCapability(CapabilityEnergy.ENERGY, side.getOpposite())) {
-                        if (tile.getCapability(CapabilityEnergy.ENERGY, side.getOpposite()).getEnergyStored() < tile.getCapability(CapabilityEnergy.ENERGY, side.getOpposite()).getMaxEnergyStored()) {
-                            int max = tile.getCapability(CapabilityEnergy.ENERGY, side.getOpposite()).receiveEnergy(this.extractEnergy(50000, true), true); // Prevent the draw of what ever the entery is going to > than capability.
-                            tile.getCapability(CapabilityEnergy.ENERGY, side.getOpposite()).receiveEnergy(this.extractEnergy(max, false), false);
+                if (tile != null && !(tile instanceof ZpmConsoleTE)) {
+                    IEnergyStorage cap = tile.getCapability(CapabilityEnergy.ENERGY, side.getOpposite());
+                    if (cap != null && cap.getEnergyStored() < cap.getMaxEnergyStored()) {
+                        int max = cap.receiveEnergy(available, true);
+                        if (max > 0) {
+                            this.extractEnergy(max, false);
+                            cap.receiveEnergy(max, false);
+                            transferred = true;
+                            // Recompute available after extracting.
+                            available = this.extractEnergy(50000, true);
+                            if (available <= 0)
+                                break;
                         }
                     }
                 }
             }
+
+            // If nothing was transferred (all neighbors full or no consumers), back off.
+            if (!transferred)
+                idleTicksRemaining = IDLE_SCAN_INTERVAL;
         }
     }
 
@@ -372,8 +399,8 @@ public final class ZpmConsoleTE extends BaseTileInventory implements ISGEnergySo
     @Override
     public int receiveEnergy(int maxReceive, boolean simulate) {
         int result = storage.receiveEnergy(maxReceive, simulate);
-        markChanged();
-
+        if (!simulate && result > 0)
+            markChanged();
         return result;
     }
 
@@ -383,13 +410,13 @@ public final class ZpmConsoleTE extends BaseTileInventory implements ISGEnergySo
             extract = this.maxExtract;
         }
         int result = storage.extractEnergy(extract, simulate);
-
-        if (isTainted(this.getStackInSlot(0))) {
-            world.newExplosion(null, this.pos.getX(), this.pos.getY(), this.pos.getZ(), (float)250, true, true);
+        if (!simulate) {
+            if (isTainted(this.getStackInSlot(0))) {
+                world.newExplosion(null, this.pos.getX(), this.pos.getY(), this.pos.getZ(), (float)250, true, true);
+            }
+            if (result > 0)
+                markChanged();
         }
-
-        markChanged();
-
         return result;
     }
 
