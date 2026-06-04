@@ -20,5 +20,5 @@ build
 # other
 eclipse
 run
-/MalisisCore-6.5.x
-/AUNIS
+/.vscode
+/Reference
